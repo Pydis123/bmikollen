@@ -1,0 +1,1 @@
+{"version":2,"defects":[],"times":{"Tests\\CryptoTest::testEncryptDecryptRoundTrip":0.005,"Tests\\CryptoTest::testDifferentCiphertextForSamePlaintext":0.002,"Tests\\CryptoTest::testTamperDetection":0.001}}
