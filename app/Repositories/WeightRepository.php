@@ -27,9 +27,9 @@ class WeightRepository extends BaseRepository {
         return $plain !== false ? (float)$plain : null;
     }
 
-    public function getRange(int $userId, string $startDate): array {
-        $stmt = $this->pdo->prepare("SELECT date, weight_ciphertext, weight_iv, weight_tag FROM {$this->table('weights')} WHERE user_id = ? AND date >= ? ORDER BY date ASC");
-        $stmt->execute([$userId, $startDate]);
+    public function getRangeBetween(int $userId, string $startDate, string $endDate): array {
+        $stmt = $this->pdo->prepare("SELECT date, weight_ciphertext, weight_iv, weight_tag FROM {$this->table('weights')} WHERE user_id = ? AND date >= ? AND date <= ? ORDER BY date ASC");
+        $stmt->execute([$userId, $startDate, $endDate]);
         $rows = $stmt->fetchAll();
         $weights = [];
         foreach ($rows as $row) {

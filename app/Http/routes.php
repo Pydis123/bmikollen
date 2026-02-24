@@ -23,6 +23,9 @@ $r->addRoute(['GET'], '/charts', [App\Http\Controllers\ChartController::class, '
 $r->addRoute(['GET', 'POST'], '/profile', [App\Http\Controllers\ProfileController::class, 'profile']);
 $r->addRoute(['POST'], '/profile/theme', [App\Http\Controllers\ProfileController::class, 'updateTheme']);
 
+// Feedback
+$r->addRoute(['GET', 'POST'], '/feedback', [App\Http\Controllers\FeedbackController::class, 'index']);
+
 // Wizard/Plans
 $r->addRoute(['GET', 'POST'], '/wizard', [App\Http\Controllers\WizardController::class, 'wizard']);
 $r->addRoute(['GET'], '/plan', [App\Http\Controllers\PlanController::class, 'current']);
@@ -36,3 +39,6 @@ $r->addRoute(['POST'], '/export', [App\Http\Controllers\ExportController::class,
 
 // Admin
 $r->addRoute(['GET', 'POST'], '/admin/invites', [App\Http\Controllers\AdminController::class, 'invites']);
+$r->addRoute(['GET'], '/admin/feedback', [App\Http\Controllers\AdminFeedbackController::class, 'index']);
+$r->addRoute(['POST'], '/admin/feedback/bug/{id:\\d+}/status', [App\Http\Controllers\AdminFeedbackController::class, 'updateBugStatus']);
+$r->addRoute(['POST'], '/admin/feedback/suggestion/{id:\\d+}/status', [App\Http\Controllers\AdminFeedbackController::class, 'updateSuggestionStatus']);

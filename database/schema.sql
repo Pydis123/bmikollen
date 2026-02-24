@@ -151,3 +151,29 @@ CREATE TABLE IF NOT EXISTS bmi_day_logs (
     INDEX (user_id, date),
     INDEX (user_id, logged_at_utc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Bugs reported by users
+CREATE TABLE IF NOT EXISTS bmi_bugs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('not_started','in_progress','done') DEFAULT 'not_started',
+    prio TINYINT NOT NULL DEFAULT 3,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES bmi_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Suggestions (feature ideas, improvements)
+CREATE TABLE IF NOT EXISTS bmi_suggestions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    status ENUM('not_started','in_progress','done') DEFAULT 'not_started',
+    prio TINYINT NOT NULL DEFAULT 3,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES bmi_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

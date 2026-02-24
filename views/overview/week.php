@@ -33,7 +33,11 @@
     </div>
   </div>
 
-  <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800">
+  <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 space-y-1">
     <div class="text-sm text-zinc-500">Vikttrend: <span class="font-mono text-zinc-900 dark:text-zinc-100"><?= (isset($weight_start) && $weight_start !== null) ? number_format((float)$weight_start,1,'.','') : '—' ?></span> &rarr; <span class="font-mono text-zinc-900 dark:text-zinc-100"><?= (isset($weight_end) && $weight_end !== null) ? number_format((float)$weight_end,1,'.','') : '—' ?></span> kg</div>
+    <?php if (!empty($plan) && isset($expected_weekly_kg) && $expected_weekly_kg !== null): ?>
+      <?php $labels = ['gentle' => 'Långsam', 'normal' => 'Normal', 'aggressive' => 'Aggressiv']; $intLabel = $labels[$plan['intensity_preset']] ?? ucfirst($plan['intensity_preset'] ?? ''); ?>
+      <div class="text-sm text-zinc-500">Förväntad minskning: <span class="font-mono text-zinc-900 dark:text-zinc-100">−<?= number_format((float)$expected_weekly_kg, 1, '.', '') ?></span> kg/v <span class="text-xs text-zinc-400">(<?= htmlspecialchars($intLabel) ?>)</span></div>
+    <?php endif; ?>
   </div>
 </div>

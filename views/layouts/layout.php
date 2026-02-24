@@ -71,6 +71,13 @@ $auth = $auth_user_id ?? null;
     .nav-link-active {
         @apply border-b-2 border-accent text-zinc-900 dark:text-zinc-50 font-medium;
     }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
   </style>
 </head>
 <body class="h-full bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 font-sans transition-colors duration-200">
@@ -79,8 +86,8 @@ $auth = $auth_user_id ?? null;
       <div class="flex items-center gap-2">
         <a href="<?= \App\Core\Config::get('app.url') ?>/" class="flex items-center">
           <!-- Mobila loggor -->
-          <img src="<?= url('/assets/img/logo-light-mobile.png') ?>" alt="BMIKollen" class="h-6 w-auto md:hidden dark:hidden">
-          <img src="<?= url('/assets/img/logo-dark-mobile.png') ?>" alt="BMIKollen" class="h-6 w-auto md:hidden hidden dark:block">
+          <img src="<?= url('/assets/img/logo-light-mobile.png') ?>" alt="BMIKollen" class="h-6 w-auto dark:hidden md:hidden">
+          <img src="<?= url('/assets/img/logo-dark-mobile.png') ?>" alt="BMIKollen" class="h-6 w-auto hidden dark:block md:dark:hidden md:hidden">
           
           <!-- Desktop-loggor -->
           <img src="<?= url('/assets/img/logo-light-desktop.png') ?>" alt="BMIKollen" class="h-8 w-auto hidden md:block dark:hidden">
@@ -101,16 +108,16 @@ $auth = $auth_user_id ?? null;
 
           $navItems = [
               ['path' => '/', 'label' => 'Idag'],
-              ['path' => '/overview', 'label' => 'Översikt'],
-              ['path' => '/plan', 'label' => 'Plan'],
-              ['path' => '/week', 'label' => 'Vecka'],
-              ['path' => '/charts', 'label' => 'Grafer'],
+              ['path' => '/overview', 'label' => 'Framsteg', 'active_paths' => ['/overview', '/plan', '/week', '/charts']],
+              ['path' => '/feedback', 'label' => 'Feedback'],
               ['path' => '/profile', 'label' => 'Profil'],
           ];
 
           if ($auth): 
               foreach($navItems as $item):
-                  $isActive = ($currentPath === $item['path']);
+                  $isActive = isset($item['active_paths']) 
+                      ? in_array($currentPath, $item['active_paths']) 
+                      : ($currentPath === $item['path']);
                   $activeClass = $isActive ? 'text-zinc-950 dark:text-white font-semibold border-b-2 border-accent' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors';
           ?>
             <a href="<?= \App\Core\Config::get('app.url') . $item['path'] ?>" class="py-1 <?= $activeClass ?>">
@@ -118,10 +125,10 @@ $auth = $auth_user_id ?? null;
             </a>
           <?php endforeach; ?>
           <?php if (!empty($is_admin)): 
-                $isActive = ($currentPath === '/admin/invites');
+                $isActive = in_array($currentPath, ['/admin/feedback', '/admin/invites']);
                 $activeClass = $isActive ? 'text-zinc-950 dark:text-white font-semibold border-b-2 border-accent' : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-colors';
           ?>
-            <a href="<?= \App\Core\Config::get('app.url') ?>/admin/invites" class="py-1 <?= $activeClass ?>">Admin</a>
+            <a href="<?= \App\Core\Config::get('app.url') ?>/admin/feedback" class="py-1 <?= $activeClass ?>">Admin</a>
           <?php endif; ?>
             <form action="<?= \App\Core\Config::get('app.url') ?>/auth/logout" method="post" class="inline ml-2">
               <input type="hidden" name="_token" value="<?= htmlspecialchars($csrf) ?>">
@@ -152,6 +159,55 @@ $auth = $auth_user_id ?? null;
     </header>
 
     <main class="min-h-[60vh] pb-24 md:pb-0">
+      <?php 
+      $tabs = [
+          ['path' => '/overview', 'label' => 'Översikt'],
+          ['path' => '/plan', 'label' => 'Plan'],
+          ['path' => '/week', 'label' => 'Vecka'],
+          ['path' => '/charts', 'label' => 'Grafer'],
+      ];
+      $currentGroupPaths = array_column($tabs, 'path');
+      if ($auth && in_array($currentPath, $currentGroupPaths)): 
+      ?>
+        <div class="mb-6 border-b border-zinc-200 dark:border-zinc-800">
+          <nav class="flex -mb-px overflow-x-auto no-scrollbar gap-x-8" aria-label="Tabs">
+            <?php foreach($tabs as $tab): 
+              $isTabActive = ($currentPath === $tab['path']);
+              $tabClass = $isTabActive 
+                ? 'border-accent text-accent' 
+                : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700';
+            ?>
+              <a href="<?= \App\Core\Config::get('app.url') . $tab['path'] ?>" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors <?= $tabClass ?>">
+                <?= $tab['label'] ?>
+              </a>
+            <?php endforeach; ?>
+          </nav>
+        </div>
+      <?php endif; ?>
+
+      <?php 
+      $adminTabs = [
+          ['path' => '/admin/feedback', 'label' => 'Feedback'],
+          ['path' => '/admin/invites', 'label' => 'Inbjudningar'],
+      ];
+      $adminPaths = array_column($adminTabs, 'path');
+      if ($auth && !empty($is_admin) && in_array($currentPath, $adminPaths)): 
+      ?>
+        <div class="mb-6 border-b border-zinc-200 dark:border-zinc-800">
+          <nav class="flex -mb-px overflow-x-auto no-scrollbar gap-x-8" aria-label="Tabs">
+            <?php foreach($adminTabs as $tab): 
+              $isTabActive = ($currentPath === $tab['path']);
+              $tabClass = $isTabActive 
+                ? 'border-accent text-accent' 
+                : 'border-transparent text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:border-zinc-300 dark:hover:border-zinc-700';
+            ?>
+              <a href="<?= \App\Core\Config::get('app.url') . $tab['path'] ?>" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors <?= $tabClass ?>">
+                <?= $tab['label'] ?>
+              </a>
+            <?php endforeach; ?>
+          </nav>
+        </div>
+      <?php endif; ?>
       <?= $content ?>
     </main>
 
@@ -160,19 +216,19 @@ $auth = $auth_user_id ?? null;
       <?php 
       $mobileNav = [
         ['path' => '/', 'label' => 'Idag', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />'],
-        ['path' => '/overview', 'label' => 'Översikt', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />'],
-        ['path' => '/plan', 'label' => 'Plan', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />'],
-        ['path' => '/week', 'label' => 'Vecka', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />'],
-        ['path' => '/charts', 'label' => 'Grafer', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 19h16M5 15l4-4 3 3 7-7" />'],
+        ['path' => '/overview', 'label' => 'Framsteg', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />', 'active_paths' => ['/overview', '/plan', '/week', '/charts']],
+        ['path' => '/feedback', 'label' => 'Feedback', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6m-6 4h8M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H9l-4 4v-4H5a2 2 0 01-2-2V8a2 2 0 012-2z" />'],
         ['path' => '/profile', 'label' => 'Profil', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />'],
       ];
 
       if (!empty($is_admin)) {
-        $mobileNav[] = ['path' => '/admin/invites', 'label' => 'Admin', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a10 10 0 11-18 0 10 10 0 0118 0z" />'];
+        $mobileNav[] = ['path' => '/admin/feedback', 'label' => 'Admin', 'icon' => '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5 2a10 10 0 11-18 0 10 10 0 0118 0z" />', 'active_paths' => ['/admin/feedback', '/admin/invites']];
       }
 
       foreach($mobileNav as $item):
-        $isActive = ($currentPath === $item['path']);
+        $isActive = isset($item['active_paths']) 
+            ? in_array($currentPath, $item['active_paths']) 
+            : ($currentPath === $item['path']);
         $colorClass = $isActive ? 'text-accent' : 'text-zinc-400 dark:text-zinc-500';
       ?>
       <a href="<?= \App\Core\Config::get('app.url') . $item['path'] ?>" class="flex flex-col items-center gap-1 <?= $colorClass ?>">

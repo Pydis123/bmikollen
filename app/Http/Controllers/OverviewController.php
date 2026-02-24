@@ -66,6 +66,23 @@ class OverviewController {
 
         $plan = $plans->getActiveForUser((int)$_SESSION['user_id']);
 
+        // Beräkna förväntad viktnedgång per vecka utifrån intensitet
+        $expectedWeeklyKg = null;
+        if ($plan && !empty($plan['intensity_preset'])) {
+            $intensityMap = [
+                'gentle' => ['pct' => 0.0025, 'min' => 0.2, 'max' => 0.4],
+                'normal' => ['pct' => 0.0050, 'min' => 0.4, 'max' => 0.8],
+                'aggressive' => ['pct' => 0.0100, 'min' => 0.8, 'max' => 1.0],
+            ];
+            $i = $intensityMap[$plan['intensity_preset']] ?? $intensityMap['normal'];
+            $refWeight = $weightStart ?? $weightEnd; // helst startvikt för veckan
+            if ($refWeight !== null) {
+                $expectedWeeklyKg = max($i['min'], min($i['max'], $i['pct'] * (float)$refWeight));
+            } else {
+                $expectedWeeklyKg = $i['min'];
+            }
+        }
+
         return $view->render('overview/week', [
             'monday' => $monday->format('Y-m-d'),
             'sunday' => $sunday->format('Y-m-d'),
@@ -73,6 +90,7 @@ class OverviewController {
             'weight_start' => $weightStart,
             'weight_end' => $weightEnd,
             'plan' => $plan,
+            'expected_weekly_kg' => $expectedWeeklyKg,
             'title' => 'Vecka'
         ]);
     }

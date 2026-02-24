@@ -8,7 +8,7 @@ En ren PHP 8.4 MVC-app för vikt-/kcal-/protein-/steg-tracking med multi-user, i
 - Miljö: `vlucas/phpdotenv`
 - Test: PHPUnit 11
 - UI: Tailwind CSS (CDN), Chart.js (CDN)
-- Webroot: `/public` (front controller `public/index.php`)
+- Webroot: `/` (front controller `index.php`)
 
 ## Installation och Setup
 
@@ -24,8 +24,8 @@ Appen har stöd för tabellprefix (standard: `bmi_`) för att kunna ligga i samm
 - **Schema:** Om du kör `database/schema.sql` skapas tabellerna med prefixet `bmi_`. Om du ändrar prefixet i `.env` måste du även uppdatera namnen i SQL-filen (eller vice versa).
 
 ### 3. Steg-för-steg Setup (Produktion/Loopia)
-1. **Filer:** Ladda upp alla mappar (`app`, `public`, `config`, `database`, `scripts`, `views`, `storage`, `vendor`) till din server.
-2. **Webroot:** Peka din domän/subdomän till mappen `public/`. (Hos Loopia görs detta i kundzonen under domäninställningar).
+1. **Filer:** Ladda upp alla mappar och filer (`app`, `assets`, `database`, `scripts`, `views`, `storage`, `vendor`, `index.php`, `.htaccess`, `.env`) till din server.
+2. **Webroot:** Peka din domän/subdomän till mappen där projektet ligger (t.ex. `public_html/`). (Hos Loopia görs detta i kundzonen under domäninställningar).
 3. **.env:** Skapa en fil som heter `.env` i projektroten (samma nivå som `app`-mappen). Använd `.env.example` som mall.
    - Fyll i dina databasuppgifter (`DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`).
    - Sätt `DB_PREFIX=bmi_`.
@@ -45,7 +45,7 @@ Appen har stöd för tabellprefix (standard: `bmi_`) för att kunna ligga i samm
    - Kör `database/schema.sql`
 6. Seeda admin:
    - `php scripts/seed_admin.php admin@bmikollen.test hemligtLösen`
-7. Peka Apache/Nginx document root till `.../bmikollen/public`.
+7. Peka Apache/Nginx document root till `.../bmikollen`.
 8. Surfa till `http://localhost/` och logga in (eller registrera med invite om `ALLOW_PUBLIC_REGISTRATION=0`).
 
 ## Säkerhet
@@ -95,9 +95,9 @@ För att snabbt se hur graferna ser ut med data kan du köra ett demo-skript som
 
 ## Mappstruktur
 ```
-/public
-  index.php
-  .htaccess
+/assets (img, css, js)
+index.php
+.htaccess
 /app
   /Core (Config, Container, Database, Request, Response, View, Logger, SessionHandler, Csrf, Crypto, Mailer)
   /Http
@@ -124,12 +124,13 @@ För att snabbt se hur graferna ser ut med data kan du köra ett demo-skript som
 2. Kopiera `.env.example` → `.env`; generera `APP_MASTER_KEY` via skriptet
 3. Skapa DB och kör `database/schema.sql`
 4. `php scripts/seed_admin.php <mail> <lösen>`
-5. Peka din webserver mot `public/`
+5. Peka din webserver mot projektets rotmapp.
 6. Logga in och gå till `/wizard` för att skapa första planen
 
 ## Deploy till shared hosting
 - Ladda upp hela projektet utom `/vendor` om du installerar på servern; annars ladda upp `/vendor` också.
-- Sätt `DocumentRoot`/"Webroot" till mappen `public/` (ofta kan detta ställas via kontrollpanel; annars använd `.htaccess`).
+- Sätt `DocumentRoot`/"Webroot" till projektets rotmapp.
+- Säkerställ att känsliga mappar (`app`, `vendor`, `.env` etc.) skyddas av `.htaccess` (skelett finns i roten).
 - Skapa databasen via hostingens phpMyAdmin och kör `database/schema.sql`.
 - Skapa `.env` på servern (sätt korrekta DB‑uppgifter, `APP_URL`, `APP_MASTER_KEY`, `MAIL_DRIVER` etc.).
 - Sätt filrättigheter så att `storage/` är skrivbar.

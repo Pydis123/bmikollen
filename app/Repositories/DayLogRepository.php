@@ -49,9 +49,9 @@ class DayLogRepository extends BaseRepository {
         ];
     }
 
-    public function getRangeTotals(int $userId, string $startDate): array {
-        $stmt = $this->pdo->prepare("SELECT date, SUM(kcal_delta) AS kcal, SUM(protein_delta) AS protein, SUM(steps_delta) AS steps FROM {$this->table('day_logs')} WHERE user_id = ? AND date >= ? GROUP BY date ORDER BY date ASC");
-        $stmt->execute([$userId, $startDate]);
+    public function getRangeTotalsBetween(int $userId, string $startDate, string $endDate): array {
+        $stmt = $this->pdo->prepare("SELECT date, SUM(kcal_delta) AS kcal, SUM(protein_delta) AS protein, SUM(steps_delta) AS steps FROM {$this->table('day_logs')} WHERE user_id = ? AND date >= ? AND date <= ? GROUP BY date ORDER BY date ASC");
+        $stmt->execute([$userId, $startDate, $endDate]);
         return $stmt->fetchAll();
     }
 }

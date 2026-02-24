@@ -7,7 +7,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\{Config, Database, Crypto};
-use App\Repositories\{DayLogRepository, WeightRepository, UserRepository, PlanRepository};
+use App\Repositories\{DayLogRepository, WeightRepository, UserRepository, PlanRepository, SuggestionRepository};
 use Dotenv\Dotenv;
 
 // Load .env
@@ -29,6 +29,7 @@ $userRepo = new UserRepository($pdo);
 $dayLogs = new DayLogRepository($pdo);
 $weightsRepo = new WeightRepository($pdo, $crypto);
 $plansRepo = new PlanRepository($pdo, $crypto);
+$suggestionsRepo = new SuggestionRepository($pdo);
 
 $email = $argv[1] ?? 'test@example.com';
 $password = $argv[2] ?? 'lösenord123';
@@ -81,5 +82,34 @@ for ($i = 29; $i >= 0; $i--) {
     }
 }
 
+// Seed default suggestions (if not already seeded)
+$defaults = [
+    ['title' => 'Inför ett Service-lager', 'description' => 'Flytta beräkningslogik (TDEE, BMI, underskott) från controllers till t.ex. NutritionService/HealthService för bättre testbarhet.'],
+    ['title' => 'Validerings-system', 'description' => 'Ett centralt valideringslager för formulär för konsekventa felmeddelanden och säkrare indata.'],
+    ['title' => 'Databas-migreringar', 'description' => 'Inför ett migrationssystem (Phinx eller liknande) istället för manuell schema.sql-hantering.'],
+    ['title' => 'Fler enhetstester', 'description' => 'Utöka tester för beräkningslogik (Mifflin–St Jeor m.m.) för trygg refaktorering.'],
+    ['title' => 'Livsmedelsdatabas', 'description' => 'Integrera Open Food Facts (eller liknande) för att söka mat och auto-beräkna Kcal/Protein.'],
+    ['title' => 'PWA-stöd', 'description' => 'Lägg till manifest och Service Worker så tjänsten kan installeras och fungera offline.'],
+    ['title' => 'Vatten-loggning', 'description' => 'En enkel modul för att logga vattenintag per dag.'],
+    ['title' => 'Streaks & notiser', 'description' => 'Motiverande streaks samt e-postpåminnelser vid utebliven loggning.'],
+    ['title' => 'PDF-export', 'description' => 'Generera sammanfattnings-PDF med grafer och mål för delning med coach/läkare.'],
+    ['title' => 'Milstolpar & firande', 'description' => 'Konfetti/meddelanden vid uppnådda delmål (t.ex. första 5 kg).'],
+    ['title' => 'Förbättrad dashboard', 'description' => 'Visa snittförändring 4 veckor och beräknat datum för målvikt.'],
+];
+
+$created = 0;
+foreach ($defaults as $def) {
+    // naive duplicate check by title for this user
+    $stmt = $pdo->prepare("SELECT 1 FROM {$prefix}suggestions WHERE user_id = ? AND title = ? LIMIT 1");
+    $stmt->execute([$userId, $def['title']]);
+    if (!$stmt->fetchColumn()) {
+        $suggestionsRepo->create($userId, $def['title'], $def['description']);
+        $created++;
+    }
+}
+if ($created > 0) {
+    echo "Seeded $created default suggestions for user $email.\n";
+}
+
 echo "Done seeding.\n";
-echo "You can now log in as '{$email}' with password '{$password}' to see the graphs.\n";
+echo "You can now log in as '{$email}' with password '{$password}' to see the graphs and feedback.\n";
